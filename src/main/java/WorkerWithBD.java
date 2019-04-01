@@ -19,7 +19,7 @@ public class WorkerWithBD {
         return work;
     }
 
-    public boolean isExistDB() {
+    private boolean isExistDB() {
         boolean isExist = true;
         Statement stmt;
         Connection c = connectionDB.getConnection();
@@ -42,7 +42,7 @@ public class WorkerWithBD {
         return isExist;
     }
 
-    public void createDB() {
+    private void createDB() {
         Statement stmt;
         Connection c = connectionDB.getConnection();
         try {
@@ -59,6 +59,29 @@ public class WorkerWithBD {
             String sql1 = "INSERT INTO WORDS (ID,RUSSIAN,ENGLISH, DATE, LEVEL)" +
                     "VALUES (1, 'кот', 'cat', "+ new Date().getTime() +", 0);";
             stmt.executeUpdate(sql1);
+
+            stmt.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void fillWords(){
+        Statement stmt;
+        Connection c = connectionDB.getConnection();
+        try {
+            stmt = c.createStatement();
+            ResultSet r1 = stmt.executeQuery("SELECT * FROM WORDS;");
+            while (r1.next()) {
+                Words.Word word =   Words.getInstance().new Word();
+                word.id = r1.getInt("id");
+                word.russian = r1.getString("RUSSIAN");
+                word.english = r1.getString("ENGLISH");
+                word.date = new Date(Long.parseLong(r1.getString("DATE")));
+                word.levelKnow = r1.getInt("LEVEL");
+                Words.getInstance().addWord(word);
+            }
 
             stmt.close();
         } catch (SQLException e) {
