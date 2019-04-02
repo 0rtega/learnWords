@@ -48,13 +48,11 @@ public class Application {
     }
 
     private void showWindowForAddWords(){
-
        AddNewWordsDialog as = new AddNewWordsDialog(new Shell(SWT.SHELL_TRIM | SWT.APPLICATION_MODAL));
-
     }
 
 
     private void showWindowForExecize(){
-
+        new TrainDialog(new Shell(SWT.SHELL_TRIM | SWT.APPLICATION_MODAL));
     }
 }

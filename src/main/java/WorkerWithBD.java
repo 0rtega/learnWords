@@ -1,6 +1,8 @@
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 public class WorkerWithBD {
@@ -27,16 +29,16 @@ public class WorkerWithBD {
             stmt = c.createStatement();
             ResultSet r1 = stmt.executeQuery("SELECT * FROM WORDS;");
             while (r1.next()) {
-                System.out.println( r1.getInt("id"));
-                System.out.println(r1.getString("RUSSIAN"));
-                System.out.println( r1.getString("ENGLISH"));
-                System.out.println(new Date(Long.parseLong( r1.getString("DATE"))));
-                System.out.println(r1.getInt("LEVEL"));
-//                r1.getInt("id");
-//                r1.getString("RUSSIAN");
-//                r1.getString("ENGLISH");
-//                r1.getString("DATE");
-//                r1.getInt("LEVEL");
+//                System.out.println( r1.getInt("id"));
+//                System.out.println(r1.getString("RUSSIAN"));
+//                System.out.println( r1.getString("ENGLISH"));
+//                System.out.println(new Date(Long.parseLong( r1.getString("DATE"))));
+//                System.out.println(r1.getInt("LEVEL"));
+                r1.getInt("id");
+                r1.getString("RUSSIAN");
+                r1.getString("ENGLISH");
+                r1.getString("DATE");
+                r1.getInt("LEVEL");
             }
 
             stmt.close();
@@ -111,6 +113,30 @@ public class WorkerWithBD {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public List<Word> getListForTrain(){
+        List<Word> list = new ArrayList<>();
+        Statement stmt;
+        Connection c = connectionDB.getConnection();
+        try {
+            stmt = c.createStatement();
+            ResultSet r1 = stmt.executeQuery("SELECT * FROM WORDS;");
+            while (r1.next()) {
+                Word w = new Word();
+                w.id = r1.getInt("id");
+                w.russian = r1.getString("RUSSIAN");
+                w.english = r1.getString("ENGLISH");
+                w.date = new Date(Long.parseLong(r1.getString("DATE")));
+                w.levelKnow =  r1.getInt("LEVEL");
+            }
+
+            stmt.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
     }
 
 }
