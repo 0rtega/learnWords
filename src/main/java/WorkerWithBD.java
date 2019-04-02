@@ -27,11 +27,16 @@ public class WorkerWithBD {
             stmt = c.createStatement();
             ResultSet r1 = stmt.executeQuery("SELECT * FROM WORDS;");
             while (r1.next()) {
-                r1.getInt("id");
-                r1.getString("RUSSIAN");
-                r1.getString("ENGLISH");
-                r1.getString("DATE");
-                r1.getInt("LEVEL");
+                System.out.println( r1.getInt("id"));
+                System.out.println(r1.getString("RUSSIAN"));
+                System.out.println( r1.getString("ENGLISH"));
+                System.out.println(new Date(Long.parseLong( r1.getString("DATE"))));
+                System.out.println(r1.getInt("LEVEL"));
+//                r1.getInt("id");
+//                r1.getString("RUSSIAN");
+//                r1.getString("ENGLISH");
+//                r1.getString("DATE");
+//                r1.getInt("LEVEL");
             }
 
             stmt.close();
@@ -57,7 +62,7 @@ public class WorkerWithBD {
             stmt.executeUpdate(sql);
 
             String sql1 = "INSERT INTO WORDS (ID,RUSSIAN,ENGLISH, DATE, LEVEL)" +
-                    "VALUES (1, 'кот', 'cat', "+ new Date().getTime() +", 0);";
+                    "VALUES (1, 'кот', 'cat', "+ new Date().getTime() +", 1);";
             stmt.executeUpdate(sql1);
 
             stmt.close();
@@ -67,28 +72,45 @@ public class WorkerWithBD {
     }
 
 
-    public void fillWords(){
+    public int getMaxId() {
+        int a = 0;
+        String sql = null;
+        sql = "SELECT * FROM WORDS ORDER BY ID DESC LIMIT 1";
         Statement stmt;
-        Connection c = connectionDB.getConnection();
         try {
-            stmt = c.createStatement();
-            ResultSet r1 = stmt.executeQuery("SELECT * FROM WORDS;");
+            stmt = connectionDB.getConnection().createStatement();
+            ResultSet r1 = stmt.executeQuery(sql);
             while (r1.next()) {
-                Words.Word word =   Words.getInstance().new Word();
-                word.id = r1.getInt("id");
-                word.russian = r1.getString("RUSSIAN");
-                word.english = r1.getString("ENGLISH");
-                word.date = new Date(Long.parseLong(r1.getString("DATE")));
-                word.levelKnow = r1.getInt("LEVEL");
-                Words.getInstance().addWord(word);
+                a = r1.getInt("id");
             }
-
             stmt.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return a;
     }
 
-
+    public void addWord(String russian, String english){
+        Connection c = connectionDB.getConnection();
+        try {
+            try {
+                PreparedStatement statement = c.prepareStatement(
+                        "INSERT INTO WORDS (ID, RUSSIAN, ENGLISH, DATE, LEVEL) " +
+                                "VALUES (?, ?, ?, ?, ?)");
+                statement.setInt(1, Identifier.getInstance().getId());
+                statement.setString(2, russian);
+                statement.setString(3, english);
+                statement.setString(4, new Date().getTime() + "");
+                statement.setInt(5, 1);
+                statement.executeUpdate();
+            } catch (SQLException ex) {
+                c.rollback();
+            } finally {
+                c.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
 }

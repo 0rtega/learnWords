@@ -4,9 +4,7 @@ import java.util.GregorianCalendar;
 public class Main {
 
     public static void main(String[] args) {
-
-        WorkerWithBD.getWork().fillWords();
-
+        Identifier.getInstance().setNumber(WorkerWithBD.getWork().getMaxId());
         Application app = new Application();
         app.createWindow();
     }

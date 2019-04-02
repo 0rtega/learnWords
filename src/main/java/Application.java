@@ -3,10 +3,10 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.ToolBar;
-import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.layout.*;
+import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Label;
 
 import java.awt.*;
 
@@ -48,11 +48,9 @@ public class Application {
     }
 
     private void showWindowForAddWords(){
-        Shell sh = new Shell(shell);
-        sh.setSize(100,200);
-        sh.setMinimumSize(100, 200);
-        sh.setBackground(new Color(display, 255,1,1));
-        sh.open();
+
+       AddNewWordsDialog as = new AddNewWordsDialog(new Shell(SWT.SHELL_TRIM | SWT.APPLICATION_MODAL));
+
     }
 
 
