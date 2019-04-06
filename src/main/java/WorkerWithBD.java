@@ -129,14 +129,18 @@ public class WorkerWithBD {
                 w.english = r1.getString("ENGLISH");
                 w.date = new Date(Long.parseLong(r1.getString("DATE")));
                 w.levelKnow =  r1.getInt("LEVEL");
+                list.add(w);
             }
-
             stmt.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
         return list;
+    }
+
+    public void updateData(List<Word> words){
+        System.out.println(";;;;;");
     }
 
 }
