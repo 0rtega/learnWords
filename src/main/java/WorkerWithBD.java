@@ -1,8 +1,8 @@
 
+
 import java.sql.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.Date;
-import java.util.List;
 
 
 public class WorkerWithBD {
@@ -10,6 +10,38 @@ public class WorkerWithBD {
 
     private static WorkerWithBD work = new WorkerWithBD();
     private ConnectionDB connectionDB = ConnectionDB.getConnectionDB();
+
+    private Map<Integer, Word> words = new HashMap<>();
+    private List<Word> sortWords = new ArrayList<>();
+
+    public void fillWords(){
+        Statement stmt;
+        Connection c = connectionDB.getConnection();
+        try {
+            stmt = c.createStatement();
+            ResultSet r1 = stmt.executeQuery("SELECT * FROM WORDS;");
+            while (r1.next()) {
+                Word word = new Word();
+                word.id = r1.getInt("id");
+                word.russian = r1.getString("RUSSIAN");
+                word.english = r1.getString("ENGLISH");
+                GregorianCalendar g =  new GregorianCalendar();
+                g.setTime(new Date(Long.parseLong(r1.getString("DATE"))));
+                word.date =g;
+                word.levelKnow = r1.getInt("LEVEL");
+                words.put(word.id, word);
+                sortWords.add(word);
+            }
+            stmt.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void updateWords(){
+
+    }
 
     private WorkerWithBD() {
         if(!isExistDB()){
@@ -29,11 +61,6 @@ public class WorkerWithBD {
             stmt = c.createStatement();
             ResultSet r1 = stmt.executeQuery("SELECT * FROM WORDS;");
             while (r1.next()) {
-//                System.out.println( r1.getInt("id"));
-//                System.out.println(r1.getString("RUSSIAN"));
-//                System.out.println( r1.getString("ENGLISH"));
-//                System.out.println(new Date(Long.parseLong( r1.getString("DATE"))));
-//                System.out.println(r1.getInt("LEVEL"));
                 r1.getInt("id");
                 r1.getString("RUSSIAN");
                 r1.getString("ENGLISH");
@@ -93,54 +120,30 @@ public class WorkerWithBD {
     }
 
     public void addWord(String russian, String english){
-        Connection c = connectionDB.getConnection();
-        try {
-            try {
-                PreparedStatement statement = c.prepareStatement(
-                        "INSERT INTO WORDS (ID, RUSSIAN, ENGLISH, DATE, LEVEL) " +
-                                "VALUES (?, ?, ?, ?, ?)");
-                statement.setInt(1, Identifier.getInstance().getId());
-                statement.setString(2, russian);
-                statement.setString(3, english);
-                statement.setString(4, new Date().getTime() + "");
-                statement.setInt(5, 1);
-                statement.executeUpdate();
-            } catch (SQLException ex) {
-                c.rollback();
-            } finally {
-                c.setAutoCommit(true);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        Word word = new Word();
+        word.id = Identifier.getInstance().getId();
+        word.russian = russian;
+        word.english = english;
+        GregorianCalendar g = new GregorianCalendar();
+        g.set(GregorianCalendar.DAY_OF_YEAR, 1);
+        word.date = g;
+        word.levelKnow = 1;
+        words.put(word.id, word);
+        sortWords.add(word);
     }
 
     public List<Word> getListForTrain(){
         List<Word> list = new ArrayList<>();
-        Statement stmt;
-        Connection c = connectionDB.getConnection();
-        try {
-            stmt = c.createStatement();
-            ResultSet r1 = stmt.executeQuery("SELECT * FROM WORDS;");
-            while (r1.next()) {
-                Word w = new Word();
-                w.id = r1.getInt("id");
-                w.russian = r1.getString("RUSSIAN");
-                w.english = r1.getString("ENGLISH");
-                w.date = new Date(Long.parseLong(r1.getString("DATE")));
-                w.levelKnow =  r1.getInt("LEVEL");
-                list.add(w);
+        int currentDay = new GregorianCalendar().get(GregorianCalendar.DAY_OF_YEAR);
+        sortWords.sort(Comparator.comparingInt(o -> o.levelKnow));
+        for(int i = sortWords.size() - 1 ; i >= 0 ; i --){
+            Word word = sortWords.get(i);
+            System.out.println(word);
+            if(word.date.get(GregorianCalendar.DAY_OF_YEAR) != currentDay){
+                list.add(word);
             }
-            stmt.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
+            if(list.size() == 30)break;
         }
-
         return list;
     }
-
-    public void updateData(List<Word> words){
-        System.out.println(";;;;;");
-    }
-
 }

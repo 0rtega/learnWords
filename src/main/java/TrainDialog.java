@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.*;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 public class TrainDialog extends Dialog {
@@ -35,7 +36,7 @@ public class TrainDialog extends Dialog {
 
 
 
-         addS = getParent();
+        addS = getParent();
         addS.setMinimumSize(420, 220);
         addS.setSize(420, 220);
         addS.setLayout(new FormLayout());
@@ -66,7 +67,7 @@ public class TrainDialog extends Dialog {
                 switchOn = true;
                 Word w = (Word)l1.getData();
                 w.levelKnow++;
-                w.date = new Date();
+                w.date = new GregorianCalendar();
             }
         });
 
@@ -85,22 +86,18 @@ public class TrainDialog extends Dialog {
             public void widgetSelected(SelectionEvent selectionEvent) {
                 switchOn = true;
                 Word w = (Word)l1.getData();
-                repeatedFalseWords.add(w);
+                if(!repeatedFalseWords.contains(w)) {
+                    repeatedFalseWords.add(w);
+                }
             }
         });
 
-        Display.getDefault().addListener(SWT.Close, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                WorkerWithBD.getWork().updateData(wordsForTrain);
-            }
-        });
         Display.getDefault().addFilter(SWT.KeyUp, event -> {
             if(event.keyCode == 16777219){
                 switchOn = true;
                 Word w = (Word)l1.getData();
                 w.levelKnow++;
-                w.date = new Date();
+                w.date = new GregorianCalendar();
             }else if(event.keyCode == 16777220){
                 switchOn = true;
                 Word w = (Word)l1.getData();
@@ -120,17 +117,22 @@ public class TrainDialog extends Dialog {
             return;
         }
         Thread thread = new Thread(() -> {
-            preStart();
             if(!addS.isDisposed()) {
-                firstRound();
-                secondRound();
+                if(!preStart())return;
+                if(! firstRound())return;
+                if(! secondRound())return;
+                if(tru.isDisposed() || fal.isDisposed() || l1.isDisposed())return ;
                 Display.getDefault().syncExec(() -> {
                     tru.setEnabled(false);
                     fal.setEnabled(false);
                     l1.setText("Конец");
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    addS.close();
                 });
-
-                WorkerWithBD.getWork().updateData(wordsForTrain);
             }
         });
         thread.setDaemon(true);
@@ -138,11 +140,10 @@ public class TrainDialog extends Dialog {
     }
 
 
-
-
-    private void secondRound(){
+    private boolean secondRound(){
         df:
         for (Word w : repeatedFalseWords) {
+            if(l1.isDisposed())return false;
             Display.getDefault().syncExec(() -> {
                 l1.setText(w.english);
                 l1.setData(w);
@@ -163,15 +164,19 @@ public class TrainDialog extends Dialog {
             }
             w.levelKnow--;
         }
+        return true;
     }
 
-    private void firstRound(){
+    private boolean  firstRound(){
+        if(tru.isDisposed() || fal.isDisposed())return false;
         Display.getDefault().syncExec(() -> {
             tru.setEnabled(true);
             fal.setEnabled(true);
         });
+
         df:
         for (Word w : wordsForTrain) {
+            if(l1.isDisposed())return false;
             Display.getDefault().syncExec(() -> {
                 l1.setText(w.english);
                 l1.setData(w);
@@ -192,21 +197,25 @@ public class TrainDialog extends Dialog {
             }
             repeatedFalseWords.add(w);
         }
+        return true;
     }
 
-    private void preStart(){
+    private boolean preStart(){
         int t = 2;
         while (true){
+
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             int e = t--;
+            if(l1.isDisposed())return false;
             Display.getDefault().syncExec(() -> l1.setText(e + ""));
             if(t == -1){
                 break;
             }
         }
+        return true;
     }
 }
